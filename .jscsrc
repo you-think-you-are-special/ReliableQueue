@@ -19,7 +19,6 @@
   ],
   "disallowMixedSpacesAndTabs": true,
   "disallowTrailingWhitespace": true,
-  "requireTrailingComma": {"ignoreSingleLine": true},
   "requireSpaceAfterComma": true,
   "disallowYodaConditions": true,
   "disallowKeywords": ["with"],
@@ -37,7 +36,7 @@
   },
   "requireSpacesInConditionalExpression": true,
   "requireBlocksOnNewline": 1,
-  "requireCommaBeforeLineBreak": true,
+  "requireCommaBeforeLineBreak": false,
   "requireSpaceBeforeBinaryOperators": true,
   "requireSpaceAfterBinaryOperators": true,
   "requireCamelCaseOrUpperCaseIdentifiers": true,
@@ -68,7 +67,6 @@
     "allExcept": "firstAfterCurly"
   },
   "requirePaddingNewLinesAfterBlocks": true,
-  "requireSemicolons": true,
   "safeContextKeyword": "_this",
   "validateLineBreaks": "LF",
   "validateQuoteMarks": {
