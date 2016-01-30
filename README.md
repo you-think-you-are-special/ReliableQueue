@@ -11,24 +11,21 @@ See http://redis.io/commands/rpoplpush#pattern-reliable-queue
 
 simple:
 ```javascript
-   var queue = new Queue({
-       namespace: 'my_awesome_queue'
-   })
-   //Support any type of argument
-   queue.push({
-       name: 'My great json task'
-   })
-   queue.push('My great text task')
-```
+   const Queue = require('../src/')
 
-```javascript
    var queue = new Queue({
-       namespace: 'my_awesome_queue'
+     namespace: 'my_awesome_queue'
    })
-   queue.pop()
-       .then(job => {
-           //do something
-       })
+
+   queue.push({
+     name: 'My great json task'
+   })
+     .then(() => queue.pop())
+     .then(console.log)
+
+   // result:
+   //{ data: { name: 'My great json task' },
+   //  sys: { createdAt: 1454188768232, checksum: 1802876647 } }
 ```
 advanced:
 

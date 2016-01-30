@@ -17,7 +17,7 @@ class ReliableQueue extends EventEmitter {
   constructor(params) {
     super()
     params = params || {}
-    this.redis = params.redis || require('./modules/redis').createClient(params.redis)
+    this.redis = require('./modules/redis').createClient(params.redis)
     this.namespace = params.namespace || 'queue'
     this.processPrefix = params.processPrefix || ':process'
     this.messagePrefix = params.messagePrefix || ':message'
