@@ -1,7 +1,6 @@
 'use strict'
 
 const EventEmitter = require('events')
-const _ = require('lodash')
 const P = require('bluebird')
 const CRC32 = require('crc-32')
 var isBlockPop = false

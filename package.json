@@ -20,7 +20,6 @@
   "dependencies": {
     "bluebird": "^3.1.5",
     "crc-32": "^0.4.0",
-    "lodash": "^4.0.1",
     "npm": "^3.6.0",
     "redis": "^2.4.2"
   },
