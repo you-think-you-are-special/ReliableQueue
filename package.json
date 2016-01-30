@@ -1,0 +1,31 @@
+{
+  "name": "queue",
+  "version": "1.0.0",
+  "description": "Reliable Queue on top of Redis. See http://redis.io/commands/rpoplpush#pattern-reliable-queue",
+  "main": "./src/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha"
+  },
+  "keywords": [
+    "queue",
+    "redis",
+    "brpoplpush",
+    "rpush"
+  ],
+  "author": "Alexander Litvinov <sanderlimail@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.1.5",
+    "crc-32": "^0.4.0",
+    "lodash": "^4.0.1",
+    "npm": "^3.6.0",
+    "redis": "^2.4.2"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5"
+  }
+}
