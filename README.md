@@ -65,3 +65,9 @@ advanced:
            return queue.reject(e.message)
        })
 ```
+
+## Events
+
+* push
+* pop
+* reject
