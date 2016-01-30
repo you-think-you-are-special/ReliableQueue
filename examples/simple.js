@@ -5,7 +5,11 @@ var queue = new Queue({
 })
 
 queue.push({
-  name: 'My great json task'
+  name: 'My great json task',
+  redis: { //@see: https://github.com/NodeRedis/node_redis#options-is-an-object-with-the-following-possible-properties
+    host: '127.0.0.1',
+    port: 6379
+  }
 })
   .then(() => queue.pop())
   .then(console.log)
