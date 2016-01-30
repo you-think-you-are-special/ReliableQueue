@@ -4,7 +4,7 @@ var nodeRedis = require('redis')
 var sinon = require('sinon');
 var fakeredis = require('fakeredis')
 
-describe('redis', function () {
+describe('modules/redis', function () {
 
   before(function (done) {
     sinon.stub(redis, 'createClient', fakeredis.createClient);

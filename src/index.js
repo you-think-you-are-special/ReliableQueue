@@ -82,7 +82,7 @@ class ReliableQueue extends EventEmitter {
    * @returns {Promise}
    */
   success() {
-    return this.redis.lremAsync(this.namespace + this.processPrefix, -1, this.job)
+    return this.redis.lremAsync(this.namespace + this.processPrefix, -1, JSON.stringify(this.job))
       .then(() => {
         isBlockPop = false
         return this.job
