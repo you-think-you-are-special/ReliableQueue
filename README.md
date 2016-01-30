@@ -71,6 +71,10 @@ advanced:
 * push
 * pop
 * reject
+ 
+## How to Contribute
+
+Open a pull request or an issue about what you want to implement / change. Glad for any help!
 
 ## License
 
