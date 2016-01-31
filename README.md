@@ -4,15 +4,13 @@ See http://redis.io/commands/rpoplpush#pattern-reliable-queue
 
 ## Requirements
 
-* Just written on node v5.4.0. Not ready yet
+* Just written on node v5.4.0. Not for production yet
 * Tests and supporting older node versions coming soon
 
 ##Usage
 
 simple:
 ```javascript
-   const Queue = require('../src/')
-
    var queue = new Queue({
      namespace: 'my_awesome_queue'
    })
@@ -51,11 +49,11 @@ advanced:
    })
    queue.pop()
        .then(job => {
-        //do something
-        return queue.backToQueue('Not ready yet')
+        //do something..
+        return queue.backToQueue('Wait for something')
        })
        .then(job => {
-           //do something
+           //do something..
            return queue.success()
        })
        .catch(e => {

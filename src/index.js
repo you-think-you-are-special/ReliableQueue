@@ -4,8 +4,17 @@ const EventEmitter = require('events')
 const P = require('bluebird')
 const CRC32 = require('crc-32')
 var isBlockPop = false
+var autoPop;
+
+var startAutoPop = (queue) => {
+  queue.on('success', () => {
+    queue.pop()
+  })
+  queue.pop()
+}
 
 /**
+ * @todo: add crypt
  * @see: http://redis.io/commands/rpoplpush#pattern-reliable-queue
  */
 class ReliableQueue extends EventEmitter {
@@ -26,6 +35,32 @@ class ReliableQueue extends EventEmitter {
   }
 
   /**
+   * @param event
+   * @param callback
+   * @returns {ReliableQueue}
+   */
+  on(event, callback) {
+    if (event === 'job' && !autoPop) {
+      startAutoPop(this)
+    }
+
+    return super.on.apply(this, arguments)
+  }
+
+  /**
+   * @param event
+   * @param callback
+   * @returns {ReliableQueue}
+   */
+  once(event, callback) {
+    if (event === 'job' && !autoPop) {
+      startAutoPop(this)
+    }
+
+    return super.once.apply(this, arguments)
+  }
+
+  /**
    * @param data
    * @returns {Promise}
    */
@@ -39,7 +74,7 @@ class ReliableQueue extends EventEmitter {
     }
     return this.redis.rpushAsync(this.namespace, JSON.stringify(job))
       .then(() => {
-        this.emit('push')
+        this.emit('push', job)
         return job
       })
   }
@@ -63,7 +98,7 @@ class ReliableQueue extends EventEmitter {
           isBlockPop = false
           return P.reject(new Error('Checksum is invalid. Data was modified.'))
         }
-
+        this.emit('job', job)
         this.job = job
         if (this.successManualy) {
           return job
@@ -71,7 +106,6 @@ class ReliableQueue extends EventEmitter {
 
         return this.success()
           .then(() => {
-            this.emit('pop')
             return job
           })
       })
@@ -81,10 +115,14 @@ class ReliableQueue extends EventEmitter {
    * @returns {Promise}
    */
   success() {
-    return this.redis.lremAsync(this.namespace + this.processPrefix, -1, JSON.stringify(this.job))
+    return this.redis.lremAsync(
+      this.namespace + this.processPrefix, -1, JSON.stringify(this.job)
+    )
       .then(() => {
+        var job = this.job;
         isBlockPop = false
-        return this.job
+        this.emit('success', job)
+        return job
       })
   }
 
@@ -101,7 +139,7 @@ class ReliableQueue extends EventEmitter {
     )
       .then(() => {
         isBlockPop = false
-        this.emit('reject')
+        this.emit('reject', this.job)
         return this.job
       })
   }
@@ -122,6 +160,10 @@ class ReliableQueue extends EventEmitter {
     })
     return this.push(this.job.data)
   }
+
+  //@todo: get errors()
+  //@todo: get progress()
+  //@todo: get statistics()
 }
 
 module.exports = ReliableQueue
