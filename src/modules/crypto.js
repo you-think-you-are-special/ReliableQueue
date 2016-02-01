@@ -8,21 +8,22 @@ const alg = 'aes-256-ctr' //default
  * @returns {string}
  */
 module.exports.encrypt = (str, encrypt) => {
-  //if (typeof encrypt === 'function') {
-  //  return encrypt(str, 'encrypt')
-  //}
-  //
+  if (typeof encrypt === 'function') {
+    return encrypt(str, 'encrypt')
+  }
+
   var cipher
-  //if (typeof encrypt === 'object') {
-  //  cipher = crypto.createCipher(encrypt.algorithm, encrypt.password)
-  //  var crypted = cipher.update(str, 'utf8', 'hex')
-  //  crypted += cipher.final('hex')
-  //  return crypted
-  //}
+  var crypted
+  if (typeof encrypt === 'object') {
+    cipher = crypto.createCipher(encrypt.algorithm, encrypt.password)
+    crypted = cipher.update(str, 'utf8', 'hex')
+    crypted += cipher.final('hex')
+    return crypted
+  }
 
   //default
   cipher = crypto.createCipher(alg, pass)
-  var crypted = cipher.update(str, 'utf8', 'hex')
+  crypted = cipher.update(str, 'utf8', 'hex')
   crypted += cipher.final('hex');
   return crypted
 }
@@ -33,21 +34,22 @@ module.exports.encrypt = (str, encrypt) => {
  * @returns {string}
  */
 module.exports.decrypt = (str, decrypt) => {
-  //if (typeof decrypt === 'function') {
-  //  return decrypt(str, 'decrypt')
-  //}
-  //
+  if (typeof decrypt === 'function') {
+    return decrypt(str, 'decrypt')
+  }
+
   var decipher
-  //if (typeof decrypt === 'object') {
-  //  decipher = crypto.createDecipher(decrypt.algorithm, decrypt.password)
-  //  var dec = decipher.update(str)
-  //  dec += decipher.final('utf8')
-  //  return dec
-  //}
+  var dec
+  if (typeof decrypt === 'object') {
+    decipher = crypto.createDecipher(decrypt.algorithm, decrypt.password)
+    dec = decipher.update(str, 'hex', 'utf8')
+    dec += decipher.final('utf8')
+    return dec
+  }
 
   //default
   decipher = crypto.createDecipher(alg, pass)
-  var dec = decipher.update(str, 'hex', 'utf8')
+  dec = decipher.update(str, 'hex', 'utf8')
   dec += decipher.final('utf8');
   return dec
 }

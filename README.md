@@ -4,7 +4,7 @@ See http://redis.io/commands/rpoplpush#pattern-reliable-queue
 
 ## Requirements
 
-* Just written on node v5.4.0. Not for production yet
+* Not for production yet
 * Tests and supporting older node versions coming soon
 
 ##Usage
@@ -35,7 +35,10 @@ advanced:
        processPrefix: ':process'
        messagePrefix = ':message'
        errorPrefix = ':error'
-       successManualy: true //to notify that the job was processed
+       successManualy: true, //to notify that the job was processed
+       encrypt: (str, type) => { 
+            //logic of encryption
+       }
    })
    //Support any type of argument
    queue.push({
