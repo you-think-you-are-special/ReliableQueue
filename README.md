@@ -36,7 +36,7 @@ advanced:
        messagePrefix = ':message'
        errorPrefix = ':error'
        successManualy: true, //to notify that the job was processed
-       encrypt: (str, type) => { 
+       encrypt: (str, type) => {
             //logic of encryption
        }
    })
