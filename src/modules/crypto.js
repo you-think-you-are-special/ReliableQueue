@@ -1,7 +1,6 @@
 const crypto = require('crypto')
-const pass = '?6f8s3_fr4c+yaza4ec*a!waMUxu5ta=' //default
-const alg = 'aes-256-ctr' //default
-
+const pass = '?6f8s3_fr4c+yaza4ec*a!waMUxu5ta='
+const alg = 'aes-256-ctr'
 
 /**
  * @param str
@@ -45,7 +44,6 @@ module.exports.encrypt = (str, encrypt) => {
     return _encrypt(str, encrypt.algorithm, encrypt.password)
   }
 
-  //default
   return _encrypt(str, alg, pass)
 }
 
@@ -63,6 +61,5 @@ module.exports.decrypt = (str, decrypt) => {
     return _decrypt(str, decrypt.algorithm, decrypt.password)
   }
 
-  //default
   return _decrypt(str, alg, pass)
 }
