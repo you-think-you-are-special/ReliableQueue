@@ -1,7 +1,7 @@
 var assert = require('assert');
 var redis = require('../src/modules/redis')
-var P = require('bluebird')
-var sinon = require('sinon')
+var nodeRedis = require('redis')
+var sinon = require('sinon');
 var fakeredis = require('fakeredis')
 var Queue = require('../src')
 

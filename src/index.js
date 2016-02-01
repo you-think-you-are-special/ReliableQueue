@@ -3,9 +3,13 @@
 const EventEmitter = require('events')
 const P = require('bluebird')
 const CRC32 = require('crc-32')
+const ctypto = require('./modules/crypto')
 var isBlockPop = false
 var autoPop;
 
+/**
+ * @param queue
+ */
 var startAutoPop = (queue) => {
   queue.on('success', () => {
     queue.pop()
@@ -14,7 +18,6 @@ var startAutoPop = (queue) => {
 }
 
 /**
- * @todo: add crypt
  * @see: http://redis.io/commands/rpoplpush#pattern-reliable-queue
  */
 class ReliableQueue extends EventEmitter {
@@ -32,6 +35,7 @@ class ReliableQueue extends EventEmitter {
     this.errorPrefix = params.errorPrefix || ':error'
     this.timeout = params.timeout || 0
     this.successManualy = params.successManualy || false
+    this.encrypt = params.encrypt || true
   }
 
   /**
@@ -72,7 +76,13 @@ class ReliableQueue extends EventEmitter {
         checksum: CRC32.str(JSON.stringify(data))
       }
     }
-    return this.redis.rpushAsync(this.namespace, JSON.stringify(job))
+
+    var save = JSON.stringify(job)
+    if (this.encrypt) {
+      save = ctypto.encrypt(save, this.encrypt)
+    }
+
+    return this.redis.rpushAsync(this.namespace, save)
       .then(() => {
         this.emit('push', job)
         return job
@@ -92,12 +102,18 @@ class ReliableQueue extends EventEmitter {
       this.namespace, this.namespace + this.processPrefix, this.timeout
     )
       .then((job) => {
+        if (this.encrypt) {
+          job = ctypto.decrypt(job, this.encrypt)
+        }
+
         job = JSON.parse(job)
+
         var checksum = CRC32.str(JSON.stringify(job.data))
         if (checksum !== job.sys.checksum) {
           isBlockPop = false
           return P.reject(new Error('Checksum is invalid. Data was modified.'))
         }
+
         this.emit('job', job)
         this.job = job
         if (this.successManualy) {
