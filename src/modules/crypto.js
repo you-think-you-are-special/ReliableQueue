@@ -7,7 +7,7 @@ const alg = 'aes-256-ctr' //default
  * @param str
  * @param alg
  * @param pass
- * @returns {Progress}
+ * @returns {string}
  * @private
  */
 var _encrypt = (str, alg, pass) => {
@@ -21,7 +21,7 @@ var _encrypt = (str, alg, pass) => {
  * @param str
  * @param alg
  * @param pass
- * @returns {Progress}
+ * @returns {string}
  * @private
  */
 var _decrypt = (str, alg, pass) => {

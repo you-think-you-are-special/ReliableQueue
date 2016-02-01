@@ -4,6 +4,7 @@ See http://redis.io/commands/rpoplpush#pattern-reliable-queue
 
 ## Requirements
 
+* Redis >= 1.2.0
 * Not for production yet
 * Tests and supporting older node versions coming soon
 
