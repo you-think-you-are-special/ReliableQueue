@@ -60,6 +60,8 @@ const queue = new ReliableQueue({
 
 ```
 
+See [examples](https://github.com/you-think-you-are-special/ReliableQueue/tree/master/examples)
+
 ## Events
 
 You can subscribe on queue events
