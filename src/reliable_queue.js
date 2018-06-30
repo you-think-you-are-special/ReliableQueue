@@ -64,27 +64,23 @@ class ReliableQueue extends EventEmitter {
      * @type {number}
      */
     this.timeoutSec = timeoutSec;
-
-    // this.processPrefix = processPrefix || ':process';
-    // this.messagePrefix = messagePrefix || ':message';
-    // this.errorPrefix = errorPrefix || ':error';
   }
 
   /**
-   * @param data
-   * @returns {Promise<{data: *, sys: {createdAt: number}}>}
+   * @param task
+   * @returns {Promise<boolean>}
    */
-  async push(data) {
-    const job = {
-      data,
+  async push(task) {
+    const data = {
+      task,
       sys: {
         createdAt: Date.now(),
       },
     };
 
-    await this.rpush(this.queuePrefix, JSON.stringify(job));
-    this.emit('push', job);
-    return job;
+    const res = await this.rpush(this.queuePrefix, JSON.stringify(data));
+    this.emit('push', data);
+    return res === 1;
   }
 
   /**

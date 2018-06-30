@@ -38,9 +38,13 @@ const queue = new ReliableQueue({
 (async () => {
 
   // first we need to add our task to queue
-  await queue.push({
+  const isPushed = await queue.push({
     name: 'My great json task'
   });
+
+  if(!isPushed){
+    throw new Error('Task was not pushed');
+  }
 
   const task = await queue.pop();
 
