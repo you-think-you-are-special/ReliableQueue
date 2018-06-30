@@ -4,9 +4,11 @@
 
 
 Redis is often used as a messaging server to implement processing of background jobs or other kinds of messaging tasks.
-A simple form of queue is often obtained pushing values into a list in the producer side, and waiting for this values in the consumer side using RPOP (using polling), or BRPOP if the client is better served by a blocking operation.
+A simple form of queue is often obtained pushing values into a list in the producer side, and waiting for this values in the consumer side using RPOP (using polling), or BRPOP if the client is better served by a blocking operation.  
+  
 However in this context the obtained queue is not reliable as messages can be lost, for example in the case there is a network problem or if the consumer crashes just after the message is received but it is still to process.
-RPOPLPUSH (or BRPOPLPUSH for the blocking variant) offers a way to avoid this problem: the consumer fetches the message and at the same time pushes it into a processing list.
+RPOPLPUSH (or BRPOPLPUSH for the blocking variant) offers a way to avoid this problem: the consumer fetches the message and at the same time pushes it into a processing list.  
+  
 It will use the LREM command in order to remove the message from the processing list once the message has been processed.
 An additional client may monitor the processing list for items that remain there for too much time, and will push those timed out items into the queue again if needed.
 
