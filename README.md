@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.com/you-think-you-are-special/ReliableQueue.svg?branch=master)](https://travis-ci.com/you-think-you-are-special/ReliableQueue)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md)
+[![dependencies Status](https://david-dm.org/you-think-you-are-special/ReliableQueue/status.svg?style=flat-square)](https://david-dm.org/you-think-you-are-special/ReliableQueue)
 
 
 Redis is often used as a messaging server to implement processing of background jobs or other kinds of messaging tasks.
