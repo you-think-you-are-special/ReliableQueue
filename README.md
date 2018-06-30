@@ -50,7 +50,7 @@ const queue = new ReliableQueue({
   const task = await queue.pop();
 
   // doing something with it...
-  console.log(`${task.name} is ok`);
+  console.log(`${task.data} is ok`);
 
   // our task was finished success or mb task.reject('The reason why') ?
   task.success();

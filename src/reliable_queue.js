@@ -55,12 +55,6 @@ class ReliableQueue extends EventEmitter {
 
     /**
      * @private
-     * @type {string}
-     */
-    this.inProgressPrefix = `${prefix}:progress`;
-
-    /**
-     * @private
      * @type {number}
      */
     this.timeoutSec = timeoutSec;
@@ -72,7 +66,7 @@ class ReliableQueue extends EventEmitter {
    */
   async push(task) {
     const data = {
-      task,
+      data: task,
       sys: {
         createdAt: Date.now(),
       },
@@ -87,14 +81,14 @@ class ReliableQueue extends EventEmitter {
    * @returns {Promise<*>}
    */
   async pop() {
-    const job = await this.brpoplpush(this.prefix, this.progressQueuePrefix, this.timeoutSec);
+    const job = await this.brpoplpush(this.queuePrefix, this.progressQueuePrefix, this.timeoutSec);
     const parsedJob = JSON.parse(job);
 
     /**
      * @returns {Promise<void>}
      */
     parsedJob.success = async () => {
-      await this.lrem(this.inProgressPrefix, -1, job);
+      await this.lrem(this.progressQueuePrefix, -1, job);
       this.emit('success', job);
       delete parsedJob.reject;
     };
