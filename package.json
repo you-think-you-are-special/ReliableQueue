@@ -4,7 +4,8 @@
   "description": "Reliable Queue on top of Redis. See http://redis.io/commands/rpoplpush#pattern-reliable-queue",
   "main": "src/reliable_queue.js",
   "directories": {
-    "test": "test"
+    "lib": "./src",
+    "test": "./test"
   },
   "engines": {
     "node": "8.11.3"
@@ -15,7 +16,8 @@
     "url": "https://github.com/you-think-you-are-special/ReliableQueue/issues"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "nyc mocha",
+    "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "keywords": [
     "queue",
@@ -28,10 +30,12 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
+    "codecov": "^3.0.2",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^13.0.0",
     "eslint-plugin-import": "^2.13.0",
     "mocha": "^5.2.0",
+    "nyc": "^12.0.2",
     "sinon": "^6.0.1"
   }
 }
