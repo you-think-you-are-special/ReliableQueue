@@ -16,5 +16,6 @@ const queue = new ReliableQueue({
   while (true) {
     const task = await queue.pop();
     console.info('RECEIVED:', task.data.msg, `Consumer pid: ${process.pid}`);
+    task.success();
   }
 })();
