@@ -1,100 +1,70 @@
-## Reliable Queue on top of Redis
+# Reliable Queue on top of Redis
 
-See http://redis.io/commands/rpoplpush#pattern-reliable-queue
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md)
+
+
+Redis is often used as a messaging server to implement processing of background jobs or other kinds of messaging tasks.
+A simple form of queue is often obtained pushing values into a list in the producer side, and waiting for this values in the consumer side using RPOP (using polling), or BRPOP if the client is better served by a blocking operation.
+However in this context the obtained queue is not reliable as messages can be lost, for example in the case there is a network problem or if the consumer crashes just after the message is received but it is still to process.
+RPOPLPUSH (or BRPOPLPUSH for the blocking variant) offers a way to avoid this problem: the consumer fetches the message and at the same time pushes it into a processing list.
+It will use the LREM command in order to remove the message from the processing list once the message has been processed.
+An additional client may monitor the processing list for items that remain there for too much time, and will push those timed out items into the queue again if needed.
+
+See: http://redis.io/commands/rpoplpush#pattern-reliable-queue
+
+Correct working on redis cluster
 
 ## Requirements
 
-* Redis >= 1.2.0
-* Not for production yet
-* Tests and supporting older node versions coming soon
+* Redis >= 2.2.0
+* Node.js >= 8.11.3
 
-##Usage
-
-simple:
-```javascript
-   var queue = new Queue({
-     namespace: 'my_awesome_queue'
-   })
-
-   queue.push({
-     name: 'My great json task'
-   })
-     .then(() => queue.pop())
-     .then(console.log)
-
-   // result:
-   //{ data: { name: 'My great json task' },
-   //  sys: { createdAt: 1454188768232, checksum: 1802876647 } }
-```
-advanced:
+## Usage
 
 ```javascript
-   var queue = new Queue({
-       namespace: 'my_awesome_queue',
-       redis: redis.createClient(),
-       timeout: 3000, //@see: http://redis.io/commands/brpoplpush
-       processPrefix: ':process'
-       messagePrefix = ':message'
-       errorPrefix = ':error'
-       successManualy: true, //to notify that the job was processed
-       encrypt: (str, type) => {
-            //logic of encryption
-       }
-   })
-   //Support any type of argument
-   queue.push({
-       name: 'My great json task'
-   })
-```
+const { ReliableQueue } = require('reliable_queue');
+const redis = require('redis');
 
-```javascript
-   var queue = new Queue({
-       namespace: 'my_awesome_queue'
-   })
-   queue.pop()
-       .then(job => {
-        //do something..
-        return queue.backToQueue('Wait for something')
-       })
-       .then(job => {
-           //do something..
-           return queue.success()
-       })
-       .catch(e => {
-           return queue.reject(e.message)
-       })
+const queue = new ReliableQueue({
+  prefix: '{my_awesome_queue}', // Optional prefix. See: https://redis.io/topics/cluster-spec#keys-hash-tags
+  redisClient: redis.createClient(), // Redis client. See https://github.com/NodeRedis/node_redis or similar interface
+  timeoutSec: 120, // Optional. Zero by default. It can be used to block connection indefinitely.
+});
+
+// suppose, we have idempotent tasks
+// it means that we can retry the task with same effect
+(async () => {
+
+  // first we need to add our task to queue
+  await queue.push({
+    name: 'My great json task'
+  });
+
+  const task = await queue.pop();
+
+  // doing something with it...
+  console.log(`${task.name} is ok`);
+
+  // our task was finished success or mb task.reject('The reason why') ?
+  task.success();
+
+})()
+  .catch(console.error);
+
 ```
 
 ## Events
 
-* push
-* pop
-* reject
- 
-## How to Contribute
+You can subscribe on queue events
 
-Open a pull request or an issue about what you want to implement / change. Glad for any help!
+```javascript
+queue.on('success', job => {
+   // for instance, write your metrics here
+});
+```
 
-## License
+* push - Adding to queue
+* pop - Popping from queue
+* reject - Job rejection event
+* success - Success prepared job
 
-The MIT License (MIT)
-
-Copyright (c) 2016 Litvinov Alexander
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.

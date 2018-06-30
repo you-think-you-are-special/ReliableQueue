@@ -1,33 +1,37 @@
 {
-  "name": "queue",
+  "name": "reliable_queue",
   "version": "1.0.0",
   "description": "Reliable Queue on top of Redis. See http://redis.io/commands/rpoplpush#pattern-reliable-queue",
-  "main": "./src/index.js",
+  "main": "src/reliable_queue.js",
   "directories": {
     "test": "test"
   },
+  "engines": {
+    "node": "8.11.3"
+  },
+  "engineStrict": true,
+  "homepage": "https://github.com/you-think-you-are-special/ReliableQueue#readme",
+  "bugs": {
+    "url": "https://github.com/you-think-you-are-special/ReliableQueue/issues"
+  },
   "scripts": {
-    "test": "./node_modules/.bin/mocha"
+    "test": "mocha"
   },
   "keywords": [
     "queue",
     "redis",
     "brpoplpush",
-    "rpush"
+    "rpush",
+    "reliable queue"
   ],
   "author": "Alexander Litvinov <sanderlimail@gmail.com>",
   "license": "MIT",
-  "dependencies": {
-    "bluebird": "^3.1.5",
-    "crc-32": "^0.4.0",
-    "hiredis": "^0.4.1",
-    "npm": "^3.6.0",
-    "redis": "^2.4.2"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "chai": "^3.5.0",
-    "fakeredis": "^1.0.2",
-    "mocha": "^2.4.5",
-    "sinon": "^1.17.3"
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^13.0.0",
+    "eslint-plugin-import": "^2.13.0",
+    "mocha": "^5.2.0",
+    "sinon": "^6.0.1"
   }
 }
