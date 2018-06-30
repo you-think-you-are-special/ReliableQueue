@@ -1,6 +1,6 @@
 # Reliable Queue on top of Redis
 
-[![Build Status](https://travis-ci.com/you-think-you-are-special/ReliableQueue.svg?branch=master&clean)](https://travis-ci.com/you-think-you-are-special/ReliableQueue)
+[![Build Status](https://travis-ci.com/you-think-you-are-special/ReliableQueue.svg?branch=master)](https://travis-ci.com/you-think-you-are-special/ReliableQueue)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md)
 
 
