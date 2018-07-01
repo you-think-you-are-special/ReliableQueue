@@ -98,9 +98,9 @@ class ReliableQueue extends EventEmitter {
      * @returns {Promise<void>}
      */
     parsedJob.reject = async (msg = '') => {
-      job.sys.error = { msg };
-      await this.rpush(this.errorQueuePrefix, job);
-      this.emit('reject', job);
+      parsedJob.sys.error = { msg };
+      await this.rpush(this.errorQueuePrefix, parsedJob);
+      this.emit('reject', parsedJob);
       delete parsedJob.success;
     };
 

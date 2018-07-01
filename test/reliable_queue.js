@@ -78,6 +78,48 @@ describe('reliable_queue', function () {
       const isEmitted = queue.emit.calledWith('pop');
       assert.ok(isEmitted, 'Pop event was emitted');
       assert.ok(queue.emit.calledOnce, 'Pop event was emitted once');
+
+      await Promise.all([
+        task.success(),
+        this.redisClient.lrem.callArgWith(3, null),
+      ]);
+
+      const isLrem = this.redisClient.lrem.calledWith(queue.progressQueuePrefix, -1);
+      assert.ok(isLrem, 'Job was removed from inprogress list');
+
+      assert.ok(queue.emit.calledWith('success'), 'success event was emitted');
+      assert.ok(queue.emit.calledTwice, 'success event was emitted once');
+    });
+
+    it('should reject job', async function () {
+      const taskMock = {
+        data: { name: 'Best ever task' },
+        sys: {
+          createdAt: Date.now(),
+        },
+      };
+
+      const queue = new this.ReliableQueue({
+        redisClient: this.redisClient,
+      });
+
+      const [task] = await Promise.all([
+        queue.pop(),
+        this.brpoplpush.callArgWith(3, null, JSON.stringify(taskMock)),
+      ]);
+
+      queue.emit = sinon.stub();
+
+      await Promise.all([
+        task.reject(),
+        this.redisClient.rpush.callArgWith(2, null),
+      ]);
+
+      const isRpush = this.redisClient.rpush.calledWith(queue.errorQueuePrefix);
+      assert.ok(isRpush, 'Job was added to error list');
+
+      assert.ok(queue.emit.calledWith('reject'), 'reject event was emitted');
+      assert.ok(queue.emit.calledOnce, 'reject event was emitted once');
     });
   });
 });
