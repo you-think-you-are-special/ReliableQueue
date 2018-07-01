@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.com/you-think-you-are-special/ReliableQueue.svg?branch=master)](https://travis-ci.com/you-think-you-are-special/ReliableQueue)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md)
 [![dependencies Status](https://david-dm.org/you-think-you-are-special/ReliableQueue/status.svg?style=flat-square)](https://david-dm.org/you-think-you-are-special/ReliableQueue)
+[![codecov](https://codecov.io/gh/you-think-you-are-special/ReliableQueue/branch/master/graph/badge.svg)](https://codecov.io/gh/you-think-you-are-special/ReliableQueue)
 
 
 Redis is often used as a messaging server to implement processing of background jobs or other kinds of messaging tasks.
@@ -20,44 +21,43 @@ Correct working on redis cluster
 
 ## Requirements
 
-* Redis >= 2.2.0
+* Redis >= 2.4 (because rpush multiple value arguments feature)
 * Node.js >= 8.11.3
+
 
 ## Usage
 
 ```javascript
-const { ReliableQueue } = require('reliable_queue');
-const redis = require('redis');
+const { ReliableQueue } = require('reliable_queue')
+const redis = require('redis')
 
 const queue = new ReliableQueue({
   prefix: '{my_awesome_queue}', // Optional prefix. See: https://redis.io/topics/cluster-spec#keys-hash-tags
   redisClient: redis.createClient(), // Redis client. See https://github.com/NodeRedis/node_redis or similar interface
   timeoutSec: 120, // Optional. Zero by default. It can be used to block connection indefinitely.
-});
+})
 
 // suppose, we have idempotent tasks
 // it means that we can retry the task with same effect
 (async () => {
 
-  // first we need to add our task to queue
-  const isPushed = await queue.push({
+  // first we need to add our task/tasks to queue
+  const queueLength = await queue.push([{
     name: 'My great json task'
-  });
+  }])
 
-  if(!isPushed){
-    throw new Error('Task was not pushed');
-  }
+  console.info(`Queue length is ${queueLength}`)
 
-  const task = await queue.pop();
+  const task = await queue.pop()
 
   // doing something with it...
-  console.log(`${task.data} is ok`);
+  console.log(`${task.data} is ok`)
 
   // our task was finished success or mb task.reject('The reason why') ?
-  task.success();
+  task.success()
 
 })()
-  .catch(console.error);
+  .catch(console.error)
 
 ```
 
@@ -70,7 +70,7 @@ You can subscribe on queue events
 ```javascript
 queue.on('success', job => {
    // for instance, write your metrics here
-});
+})
 ```
 
 * push - Adding to queue

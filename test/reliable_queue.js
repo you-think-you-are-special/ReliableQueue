@@ -12,44 +12,37 @@ describe('reliable_queue', function () {
   beforeEach(function () {
     this.brpoplpush = sinon.stub();
     this.redisClient = {
-      duplicate: () => {
-        return {
-          brpoplpush: this.brpoplpush,
-        };
-      },
+      duplicate: () => ({
+        brpoplpush: this.brpoplpush,
+      }),
       rpush: sinon.spy(),
       lrem: sinon.stub(),
     };
   });
 
   describe('#push()', () => {
-    it('should push js objects', async function () {
+    it('should push js objects and strings and numbers', async function () {
       const clock = sinon.useFakeTimers();
       const queue = new this.ReliableQueue({
         redisClient: this.redisClient,
       });
+
       queue.emit = sinon.stub();
 
-      const task = { name: 'Cool task' };
+      const tasks = [{ name: 'Cool task' }, 'Cool task', 37298563];
+
       const [isPushed] = await Promise.all([
-        queue.push(task),
-        this.redisClient.rpush.callArgWith(2, null, 1),
+        queue.push(tasks),
+        this.redisClient.rpush.callArgWith(tasks.length + 1, null, tasks.length),
       ]);
 
-      assert.strictEqual(isPushed, true, 'Task pushed successfully');
+      assert.strictEqual(isPushed, tasks.length, 'Task pushed successfully');
 
-      const dataForSave = {
-        data: task,
-        sys: {
-          createdAt: Date.now(),
-        },
-      };
-
-      const isRpushCalledCorrect = this.redisClient.rpush.calledWith(this.defaultQueuePrefix, JSON.stringify(dataForSave));
+      const isRpushCalledCorrect = this.redisClient.rpush.calledWith(this.defaultQueuePrefix);
       assert.ok(isRpushCalledCorrect, 'Redis rpush called with correct params');
       assert.ok(this.redisClient.rpush.calledOnce, 'Redis rpush called once');
 
-      const isEmitted = queue.emit.calledWithExactly('push', dataForSave);
+      const isEmitted = queue.emit.calledWith('push');
       assert.ok(isEmitted, 'push event was emitted');
 
       clock.restore();

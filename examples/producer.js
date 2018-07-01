@@ -19,7 +19,7 @@ const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min)) + min
   while (true) {
     const msg = `PUSHED: ${i} HELLO WORLD!!! Producer pid: ${process.pid}`;
     console.info(msg);
-    queue.push({ msg });
+    queue.push([{ msg }]);
     await timeout(getRandomInt(100, 2000)); // lets jobs with random timeout
     i += 1;
   }

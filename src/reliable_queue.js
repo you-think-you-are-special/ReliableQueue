@@ -61,20 +61,20 @@ class ReliableQueue extends EventEmitter {
   }
 
   /**
-   * @param task
-   * @returns {Promise<boolean>}
+   * @param {Array} tasks
+   * @returns {Promise<number>} the length of the list after the push operation
    */
-  async push(task) {
-    const data = {
-      data: task,
-      sys: {
-        createdAt: Date.now(),
-      },
-    };
+  async push(tasks) {
+    const createdAt = Date.now();
+    const data = tasks
+      .map(task => ({
+        data: task,
+        sys: { createdAt },
+      }));
 
-    const res = await this.rpush(this.queuePrefix, JSON.stringify(data));
+    const queueLength = await this.rpush(this.queuePrefix, ...data.map(d => JSON.stringify(d)));
     this.emit('push', data);
-    return res === 1;
+    return queueLength;
   }
 
   /**
