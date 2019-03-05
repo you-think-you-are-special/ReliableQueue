@@ -21,7 +21,7 @@ Correct working on redis cluster
 
 ## Requirements
 
-* Redis >= 2.4 (because rpush multiple value arguments feature)
+* Redis >= 2.4 (because of redis rpush feature)
 * Node.js >= 8.11.3
 
 
@@ -37,11 +37,11 @@ const queue = new ReliableQueue({
   timeoutSec: 120, // Optional. Zero by default. It can be used to block connection indefinitely.
 })
 
-// suppose, we have idempotent tasks
-// it means that we can retry the task with same effect
+// For instance, we have idempotent tasks
+// that means we can retry the task with the same effect
 (async () => {
 
-  // first we need to add our task/tasks to queue
+  // This is how we add our task/tasks to a queue
   const queueLength = await queue.push([{
     name: 'My great json task'
   }])
@@ -50,10 +50,9 @@ const queue = new ReliableQueue({
 
   const task = await queue.pop()
 
-  // doing something with it...
   console.log(`${task.data} is ok`)
 
-  // our task was finished success or mb task.reject('The reason why') ?
+  // our task was finished success or task.reject('The reason why') ?
   task.success()
 
 })()
@@ -69,7 +68,7 @@ You can subscribe on queue events
 
 ```javascript
 queue.on('success', job => {
-   // for instance, write your metrics here
+  // your code here
 })
 ```
 
