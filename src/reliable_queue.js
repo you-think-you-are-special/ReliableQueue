@@ -1,112 +1,134 @@
 /* eslint-disable max-len */
-const EventEmitter = require('events');
-const { promisify } = require('util');
-
+const EventEmitter = require('events')
+const { promisify } = require('util')
 
 /**
  * @see: http://redis.io/commands/rpoplpush#pattern-reliable-queue
  */
 class ReliableQueue extends EventEmitter {
   /**
-   * @param {{duplicate: function, rpush: function, lrem: function, brpoplpush: function}} redisClient
+   * @param {{duplicate: function, rpush: function, lrem: function, brpoplpush: function, brpop: function}} redisClient
    * @param {string} prefix @see: https://redis.io/topics/cluster-spec#keys-hash-tags
    * @param {number} timeoutSec
+   * @param {boolean} noAck
    */
-  constructor({ redisClient, prefix = '{queue}', timeoutSec = 0 }) {
-    super();
+  constructor ({ redisClient, prefix = '{queue}', timeoutSec = 0, noAck = false }) {
+    super()
 
     /**
      * @see https://github.com/NodeRedis/node_redis#clientduplicateoptions-callback
      */
-    const clientBlocking = redisClient.duplicate();
+    const clientBlocking = redisClient.duplicate()
 
     /**
      * @private
      */
-    this.rpush = promisify(redisClient.rpush).bind(redisClient);
+    this.rpush = promisify(redisClient.rpush).bind(redisClient)
 
     /**
      * @private
      */
-    this.lrem = promisify(redisClient.lrem).bind(redisClient);
+    this.lrem = promisify(redisClient.lrem).bind(redisClient)
 
     /**
      * @private
      */
-    this.brpoplpush = promisify(clientBlocking.brpoplpush).bind(redisClient);
+    this.brpop = promisify(clientBlocking.brpop).bind(redisClient)
 
     /**
      * @private
-     * @type {string}
      */
-    this.queuePrefix = prefix;
-
-    /**
-     * @private
-     * @type {string}
-     */
-    this.progressQueuePrefix = `${prefix}:progress`;
+    this.brpoplpush = promisify(clientBlocking.brpoplpush).bind(redisClient)
 
     /**
      * @private
      * @type {string}
      */
-    this.errorQueuePrefix = `${prefix}:error`;
+    this.queuePrefix = prefix
+
+    /**
+     * @private
+     * @type {string}
+     */
+    this.progressQueuePrefix = `${prefix}:progress`
+
+    /**
+     * @private
+     * @type {string}
+     */
+    this.errorQueuePrefix = `${prefix}:error`
 
     /**
      * @private
      * @type {number}
      */
-    this.timeoutSec = timeoutSec;
+    this.timeoutSec = timeoutSec
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    this.noAck = noAck
   }
 
   /**
    * @param {Array} tasks
    * @returns {Promise<number>} the length of the list after the push operation
    */
-  async push(tasks) {
-    const createdAt = Date.now();
+  async push (tasks) {
     const data = tasks
-      .map(task => ({
-        data: task,
-        sys: { createdAt },
-      }));
+      .map(task => ({ data: task }))
 
-    const queueLength = await this.rpush(this.queuePrefix, ...data.map(d => JSON.stringify(d)));
-    this.emit('push', data);
-    return queueLength;
+    const queueLength = await this.rpush(this.queuePrefix, ...data.map(d => JSON.stringify(d)))
+    this.emit('push', data)
+    return queueLength
   }
 
   /**
    * @returns {Promise<*>}
    */
-  async pop() {
-    const job = await this.brpoplpush(this.queuePrefix, this.progressQueuePrefix, this.timeoutSec);
-    const parsedJob = JSON.parse(job);
+  async pop () {
+    let job
+    if (this.noAck) {
+      const res = await this.brpop(this.queuePrefix, this.timeoutSec)
+      if (res === null) {
+        return this.pop()
+      }
 
-    /**
-     * @returns {Promise<void>}
-     */
-    parsedJob.success = async () => {
-      await this.lrem(this.progressQueuePrefix, -1, job);
-      this.emit('success', job);
-      delete parsedJob.reject;
-    };
+      job = res[1]
+    } else {
+      job = await this.brpoplpush(this.queuePrefix, this.progressQueuePrefix, this.timeoutSec)
+      if (job === null) {
+        return this.pop()
+      }
+    }
 
-    /**
-     * @param msg
-     * @returns {Promise<void>}
-     */
-    parsedJob.reject = async (msg = '') => {
-      parsedJob.sys.error = { msg };
-      await this.rpush(this.errorQueuePrefix, parsedJob);
-      this.emit('reject', parsedJob);
-      delete parsedJob.success;
-    };
+    const parsedJob = JSON.parse(job)
+    if (!this.noAck) {
+      /**
+       * @returns {Promise<void>}
+       */
+      parsedJob.success = async () => {
+        await this.lrem(this.progressQueuePrefix, -1, job)
+        this.emit('success', job)
+        delete parsedJob.reject
+      }
 
-    this.emit('pop', parsedJob);
-    return parsedJob;
+      /**
+       * @param msg
+       * @returns {Promise<void>}
+       */
+      parsedJob.reject = async (msg = '') => {
+        parsedJob.sys.error = { msg }
+        await this.rpush(this.errorQueuePrefix, parsedJob)
+        this.emit('reject', parsedJob)
+        delete parsedJob.success
+      }
+    }
+
+    this.emit('pop', parsedJob)
+    return parsedJob
   }
 }
 
-module.exports.ReliableQueue = ReliableQueue;
+module.exports.ReliableQueue = ReliableQueue

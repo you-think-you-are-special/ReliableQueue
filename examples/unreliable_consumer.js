@@ -8,17 +8,17 @@ const redis = require('redis')
 
 const { ReliableQueue } = require('../src/reliable_queue')
 
-process.title = 'consumer'
+process.title = 'unreliable_consumer'
 
 const queue = new ReliableQueue({
-  redisClient: redis.createClient()
+  redisClient: redis.createClient(),
+  noAck: true
 });
 
 (async () => {
   while (true) {
     const task = await queue.pop()
     console.info('RECEIVED:', task.data.msg, `Consumer pid: ${process.pid}`)
-    await task.success()
   }
 })()
   .catch(console.error)
