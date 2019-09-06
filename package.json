@@ -1,6 +1,6 @@
 {
   "name": "reliable_queue",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Reliable Queue on top of Redis. See http://redis.io/commands/rpoplpush#pattern-reliable-queue",
   "main": "src/reliable_queue.js",
   "directories": {

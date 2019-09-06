@@ -54,33 +54,35 @@ class ReliableQueue extends EventEmitter {
 
   /**
    * @param {Array} tasks
+   * @param {{prefix:string}} options
    * @returns {Promise<number>} the length of the list after the push operation
    */
-  async push (tasks) {
+  async push (tasks, { prefix = '' } = {}) {
     const data = tasks
       .map(task => ({ data: task }))
 
-    const queueLength = await this.client.rpush(this.queuePrefix, ...data.map(d => JSON.stringify(d)))
+    const queueLength = await this.client.rpush(this.queuePrefix + prefix, ...data.map(d => JSON.stringify(d)))
     this.emit('push', data)
     return queueLength
   }
 
   /**
+   * @param {{prefix:string}} options
    * @returns {Promise<*>}
    */
-  async pop () {
+  async pop ({ prefix = '' }) {
     let job
     if (this.noAck) {
-      const res = await this.clientBlocking.brpop(this.queuePrefix, this.timeoutSec)
+      const res = await this.clientBlocking.brpop(this.queuePrefix + prefix, this.timeoutSec)
       if (res === null) {
-        return this.pop()
+        return this.pop({ prefix })
       }
 
       job = res[1]
     } else {
-      job = await this.clientBlocking.brpoplpush(this.queuePrefix, this.progressQueuePrefix, this.timeoutSec)
+      job = await this.clientBlocking.brpoplpush(this.queuePrefix + prefix, this.progressQueuePrefix, this.timeoutSec)
       if (job === null) {
-        return this.pop()
+        return this.pop({ prefix })
       }
     }
 
