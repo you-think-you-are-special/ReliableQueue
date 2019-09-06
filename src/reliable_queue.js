@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 const EventEmitter = require('events')
-const { promisify } = require('util')
+const { wrap } = require('./redis_wrapper')
 
 /**
  * @see: http://redis.io/commands/rpoplpush#pattern-reliable-queue
@@ -18,27 +18,8 @@ class ReliableQueue extends EventEmitter {
     /**
      * @see https://github.com/NodeRedis/node_redis#clientduplicateoptions-callback
      */
-    const clientBlocking = redisClient.duplicate()
-
-    /**
-     * @private
-     */
-    this.rpush = promisify(redisClient.rpush).bind(redisClient)
-
-    /**
-     * @private
-     */
-    this.lrem = promisify(redisClient.lrem).bind(redisClient)
-
-    /**
-     * @private
-     */
-    this.brpop = promisify(clientBlocking.brpop).bind(redisClient)
-
-    /**
-     * @private
-     */
-    this.brpoplpush = promisify(clientBlocking.brpoplpush).bind(redisClient)
+    this.clientBlocking = wrap(redisClient.duplicate())
+    this.client = wrap(redisClient)
 
     /**
      * @private
@@ -79,7 +60,7 @@ class ReliableQueue extends EventEmitter {
     const data = tasks
       .map(task => ({ data: task }))
 
-    const queueLength = await this.rpush(this.queuePrefix, ...data.map(d => JSON.stringify(d)))
+    const queueLength = await this.client.rpush(this.queuePrefix, ...data.map(d => JSON.stringify(d)))
     this.emit('push', data)
     return queueLength
   }
@@ -90,14 +71,14 @@ class ReliableQueue extends EventEmitter {
   async pop () {
     let job
     if (this.noAck) {
-      const res = await this.brpop(this.queuePrefix, this.timeoutSec)
+      const res = await this.clientBlocking.brpop(this.queuePrefix, this.timeoutSec)
       if (res === null) {
         return this.pop()
       }
 
       job = res[1]
     } else {
-      job = await this.brpoplpush(this.queuePrefix, this.progressQueuePrefix, this.timeoutSec)
+      job = await this.clientBlocking.brpoplpush(this.queuePrefix, this.progressQueuePrefix, this.timeoutSec)
       if (job === null) {
         return this.pop()
       }
@@ -109,7 +90,7 @@ class ReliableQueue extends EventEmitter {
        * @returns {Promise<void>}
        */
       parsedJob.success = async () => {
-        await this.lrem(this.progressQueuePrefix, -1, job)
+        await this.client.lrem(this.progressQueuePrefix, -1, job)
         this.emit('success', job)
         delete parsedJob.reject
       }
@@ -120,7 +101,7 @@ class ReliableQueue extends EventEmitter {
        */
       parsedJob.reject = async (msg = '') => {
         parsedJob.sys.error = { msg }
-        await this.rpush(this.errorQueuePrefix, parsedJob)
+        await this.client.rpush(this.errorQueuePrefix, parsedJob)
         this.emit('reject', parsedJob)
         delete parsedJob.success
       }
