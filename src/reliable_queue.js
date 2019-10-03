@@ -67,10 +67,39 @@ class ReliableQueue extends EventEmitter {
   }
 
   /**
+   * @param {string} prefix
+   * @param {number} concurrency
+   * @param {number} delayMs
+   * @param {function} cb
+   */
+  receive ({ prefix = '', concurrency = 1 }, cb) {
+    (async () => {
+      let promises = []
+      while (true) {
+        const job = await this.pop({ prefix })
+        try {
+          promises.push(cb(job))
+        } catch (e) {
+          e.job = job
+          this.emit('error', e)
+        }
+
+        if (promises.length === concurrency) {
+          await Promise.all(promises)
+            .catch(e => this.emit('error', e))
+
+          promises = []
+        }
+      }
+    })()
+      .catch(e => this.emit('error', e))
+  }
+
+  /**
    * @param {{prefix:string}} options
    * @returns {Promise<*>}
    */
-  async pop ({ prefix = '' }) {
+  async pop ({ prefix = '' } = {}) {
     let job
     if (this.noAck) {
       const res = await this.clientBlocking.brpop(this.queuePrefix + prefix, this.timeoutSec)
